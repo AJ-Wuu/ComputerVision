@@ -24,12 +24,12 @@ function hough_img = generateHoughAccumulator(img, theta_num_bins, rho_num_bins)
     xy_edges = [-x_edge, y_edge];
     rho_edges = xy_edges * sincos;
 
-    % get rho_votes = round((rho_edges - rho_min) * (rho_num_bins - 1) / (rho_max - rho_min)) + 1
+    % get rho_votes
     rho_vote_bins = round((rho_edges - rho_min) * (rho_num_bins - 1) / (rho_max - rho_min)) + 1;
 
-    % map to corresponding index in the hough_img array and accumulate votes
     theta_vote_bins = 1:1:theta_num_bins;
     for i = 1:size(rho_vote_bins, 1)
+        % map to corresponding index in the hough_img array and accumulate votes
         ind = sub2ind(size(hough_img), rho_vote_bins(i,:), theta_vote_bins); % ind = sub2ind(sz,row,col)
         hough_img(ind) = hough_img(ind) + 1;
     end

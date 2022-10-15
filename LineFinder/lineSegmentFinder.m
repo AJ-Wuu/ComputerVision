@@ -70,7 +70,6 @@ function cropped_line_img = lineSegmentFinder(orig_img, hough_img, hough_thresho
                 y2 = y2_temp + y_center;
             	
                 % find the top point that is the beginning of the segment
-                % no need to worry about the horizontal case
                 if (theta ~= 0)
                     [x1, y1] = checkSegment(x1_temp, x1, y1, x_min, x_max, theta, rho, x_center, y_center);
                     [x2, y2] = checkSegment(x2_temp, x2, y2, x_min, x_max, theta, rho, x_center, y_center);

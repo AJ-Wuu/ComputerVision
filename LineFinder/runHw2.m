@@ -51,7 +51,7 @@ thresh = {0.04, 0.025, 0.035};
 for i = 1:length(img_list)
     img = imread([img_list{i} '.png']);
     edge_img = edge(img, "sobel", thresh{i});
-        
+
     % Note: The output from edge is an image of logical type.
     % Here we cast it to double before saving it.
     imwrite(im2double(edge_img), ['edge_' img_list{i} '.png']);
