@@ -1,4 +1,8 @@
 function cropped_line_img = lineSegmentFinder(orig_img, hough_img, hough_threshold, canny_threshold)
+    % references:
+    % https://github.com/Rad-hi/crop_line_detector_cv/blob/master/scripts/cropLineDetector.py
+    % https://www.mathworks.com/help/signal/ug/remove-spikes-from-a-signal.html
+
     fig = figure();
     imshow(orig_img);
 
@@ -11,18 +15,18 @@ function cropped_line_img = lineSegmentFinder(orig_img, hough_img, hough_thresho
     % find peaks
     strong_hough_img = hough_img;
     [hough_img_H, hough_img_W] = size(hough_img);
-	window_H = round((4 * N_rho) / max(H, W)); % coefficient are gained from trials
-    window_W = round((6 * N_theta) / 360);
+	window_H = 4; % try to make window_H : window_W = hough_img_H : hough_img_W
+    window_W = 6;
     peaks = zeros(size(hough_img));
     for i = 1:hough_img_H
         for j = 1:hough_img_W
             if hough_img(i, j) > 0
-                top = max(i - window_W, 1);
-                bottom = min(i + window_W, hough_img_H);
-                left = max(j - window_H, 1);
-                right = min(j + window_H, hough_img_W);
-                window_temp = hough_img(top:bottom, left:right);
-                peaks(i, j) = verifyPeak(window_temp, i - top + 1, j - left + 1);
+                x_low = max(j - window_H, 1);
+                x_high = min(j + window_H, hough_img_W);
+                y_low = min(i + window_W, hough_img_H);
+                y_high = max(i - window_W, 1);
+                window_temp = hough_img(y_high:y_low, x_low:x_high);
+                peaks(i, j) = verifyPeak(window_temp, i - y_high + 1, j - x_low + 1);
             end
         end
     end
@@ -76,7 +80,7 @@ function cropped_line_img = lineSegmentFinder(orig_img, hough_img, hough_thresho
                 end
                 
                 % get points on the segment
-                distance = ceil(sqrt((x1-x2)^2 + (y1-y2)^2));
+                distance = round(sqrt((x1-x2)^2 + (y1-y2)^2)) + 1;
                 range = linspace(0, 1, distance);
                 points = zeros(distance, 2);
                 for d = 1:distance
@@ -86,34 +90,16 @@ function cropped_line_img = lineSegmentFinder(orig_img, hough_img, hough_thresho
                 % get the points' indices from edges
                 seg_ind = sub2ind(size(edges), points(:,2), points(:,1));
                 seg_edge = edges(seg_ind);
-                
-                % calculate the median values around each point, the range n is based on trial
-                seg_edge = medfilt1(single(seg_edge), 13); % medfilt1(x,n) applies an nth-order one-dimensional median filter to x
-                                
-                D = zeros(distance, distance);
-                line_exist = false;
-                for k = 1:distance
-                    if seg_edge(k)
-                        for l = k+1:distance
-                            if seg_edge(l)
-                                segment = seg_edge(k:l);
-                                density = sum(segment) / (l - k);
-                                
-                                if density > 0.5
-                                    line_exist = true;
-                                    D(k, l) = l - k;
-                                end
-                            end
-                        end
-                    end
-                end
-                [~, ind_max] = max(D(:));
-                [kmax, lmax] = ind2sub(size(D), ind_max);
-                x1 = points(kmax, 1);
-                x2 = points(lmax, 1);
-                y1 = points(kmax, 2);
-                y2 = points(lmax, 2);
-                if line_exist
+                [has_segment, segment] = splitSegment(distance, seg_edge);
+
+                % [M,I] = max(___) returns the index into the operating dimension that corresponds to the maximum value
+                [~, point_index] = max(segment(:));
+                [point1, point2] = ind2sub(size(segment), point_index);
+                x1 = points(point1, 1);
+                x2 = points(point2, 1);
+                y1 = points(point1, 2);
+                y2 = points(point2, 2);
+                if has_segment
                     % draw on the figure
             	    hold on
                     line([x1, x2], [y1, y2], 'Color', 'red', 'LineWidth', 3);
@@ -156,6 +142,25 @@ function [x,y] = checkSegment(x1_temp, x1, y1, x_min, x_max, theta, rho, x_cente
         y1_temp = (x1_temp * sin(theta) + rho) / cos(theta);
         x = x1_temp + x_center;
         y = y1_temp + y_center;
+    end
+end
+
+function [has_segment, segment] = splitSegment(distance, seg_edge)
+    % remove noise with the median values around each point
+    seg_edge = medfilt1(single(seg_edge), 13); % value gained by trials
+
+    has_segment = false;
+    segment = zeros(distance, distance);
+    for i = 1:distance
+        for j = (i+1):distance
+            if seg_edge(i) ~= 0 && seg_edge(j) ~= 0                             
+                if sum(seg_edge(i:j)) > (j - i) / 2
+                    % enough pixels to be a segment, rather than a dot or something else
+                    has_segment = true;
+                    segment(i, j) = j - i;
+                end
+            end
+        end
     end
 end
 

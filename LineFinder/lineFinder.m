@@ -1,4 +1,9 @@
 function line_detected_img = lineFinder(orig_img, hough_img, hough_threshold)
+    % references:
+    % https://www.mathworks.com/help/images/ref/houghpeaks.html#d124e125722
+    % https://github.com/sfoerster/matlab/blob/master/hough/hough_peaks.m
+    % https://github.com/sfoerster/matlab/blob/master/hough/hough_lines_acc.m
+
     fig = figure();
     imshow(orig_img);
     
@@ -11,18 +16,18 @@ function line_detected_img = lineFinder(orig_img, hough_img, hough_threshold)
     % find peaks
     strong_hough_img = hough_img;
     [hough_img_H, hough_img_W] = size(hough_img);
-	window_H = round((4 * N_rho) / max(H, W)); % coefficient are gained from trials
-    window_W = round((6 * N_theta) / 360);
+	window_H = 4; % try to make window_H : window_W = hough_img_H : hough_img_W
+    window_W = 6;
     peaks = zeros(size(hough_img));
     for i = 1:hough_img_H
         for j = 1:hough_img_W
             if hough_img(i, j) > 0
-                top = max(i - window_W, 1);
-                bottom = min(i + window_W, hough_img_H);
-                left = max(j - window_H, 1);
-                right = min(j + window_H, hough_img_W);
-                window_temp = hough_img(top:bottom, left:right);
-                peaks(i, j) = verifyPeak(window_temp, i - top + 1, j - left + 1);
+                x_low = max(j - window_H, 1);
+                x_high = min(j + window_H, hough_img_W);
+                y_low = min(i + window_W, hough_img_H);
+                y_high = max(i - window_W, 1);
+                window_temp = hough_img(y_high:y_low, x_low:x_high);
+                peaks(i, j) = verifyPeak(window_temp, i - y_high + 1, j - x_low + 1);
             end
         end
     end
