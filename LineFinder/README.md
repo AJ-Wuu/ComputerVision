@@ -1,5 +1,4 @@
-# HW2
-## Walkthrough is fine
+# Line Finder
 ## Edge Detection
 I tried sobel and canny, and finally I decided to use sobel as the result looks better to me.  
 I used canny in the later part of the homework though.  
