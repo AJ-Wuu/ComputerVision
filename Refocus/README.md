@@ -1,4 +1,4 @@
-# HW4
+# Refocus App
 ## Load Stack
 To load the stack, we need to use some commands like dir and fullfile to interact with the file system.  
 There are multiple attributes we could extract with dir, including name, date, bytes, etc.  
