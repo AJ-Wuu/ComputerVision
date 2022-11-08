@@ -25,6 +25,3 @@ It is important to realize that we need to update the total_weighted_mask from 0
 I followed the comments to use the previous parts step by step.  
 I kept some parameters in the beginning to make it easier for modification.  
 bbox_crop() looks cool to remove excess padding from the output.  
-
-## Your own photos
-Seems like any odd number of pictures works fine -- even numbers are not possible as it cannot find a "central" one to put in the middle.  
